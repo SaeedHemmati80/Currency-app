@@ -14,8 +14,6 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -42,39 +40,38 @@ class Home extends StatefulWidget {
     super.key,
   });
 
-
   @override
   State<Home> createState() => _HomeState();
 }
-
 
 class _HomeState extends State<Home> {
   List<Currency> currency = [];
   String systemTime = "";
 
-  Future getResponse(BuildContext context) async{
-    var url = "https://sasansafari.com/flutter/api.php?access_key=flutter123456";
+  Future getResponse(BuildContext context) async {
+    var url =
+        "https://sasansafari.com/flutter/api.php?access_key=flutter123456";
     var dio = Dio();
     var response = await dio.get(url);
-      if (currency.isEmpty) {
-        if (response.statusCode == 200) {
-          _showSnackBar(context, "بروزرسانی اطلاعات با موفقیت انجام شد");
-          List jsonList = response.data;
+    if (currency.isEmpty) {
+      if (response.statusCode == 200) {
+        _showSnackBar(context, "بروزرسانی اطلاعات با موفقیت انجام شد");
+        List jsonList = response.data;
 
-          if (jsonList.isNotEmpty) {
-            for (int i = 0; i < jsonList.length; i++) {
-              setState(() {
-                currency.add(Currency(
-                    id: jsonList[i]["id"],
-                    title: jsonList[i]["title"],
-                    price: jsonList[i]["price"],
-                    changes: jsonList[i]["changes"],
-                    status: jsonList[i]["status"]));
-              });
-            }
+        if (jsonList.isNotEmpty) {
+          for (int i = 0; i < jsonList.length; i++) {
+            setState(() {
+              currency.add(Currency(
+                  id: jsonList[i]["id"],
+                  title: jsonList[i]["title"],
+                  price: jsonList[i]["price"],
+                  changes: jsonList[i]["changes"],
+                  status: jsonList[i]["status"]));
+            });
           }
         }
       }
+    }
   }
 
   @override
@@ -142,10 +139,17 @@ class _HomeState extends State<Home> {
             const SizedBox(
               height: 10,
             ),
-            Text(
-              "نرخ ارز به زبان ساده عبارت است از مقدار پولی که باید در ازای دریافت یک واحد پولی خارجی پرداخت کنیم.",
-              style: Theme.of(context).textTheme.bodyMedium,
-              textDirection: TextDirection.rtl,
+            SizedBox(
+              width: double.infinity,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 10),
+                child: Text(
+                  "نرخ ارز به زبان ساده عبارت است از مقدار پولی که باید در ازای دریافت یک واحد پولی خارجی پرداخت کنیم.",
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  textAlign: TextAlign.start,
+                  textDirection: TextDirection.rtl,
+                ),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
@@ -190,31 +194,15 @@ class _HomeState extends State<Home> {
             // Box items
             SizedBox(
               width: double.infinity,
-              height: 440,
+              height: MediaQuery.of(context).size.height/2,
               // List Item
-              child: ListView.separated(
-                physics: const BouncingScrollPhysics(),
-                itemCount: currency.length,
-                itemBuilder: (BuildContext context, int position) {
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 10),
-                    child: MyItem(currency, position),
-                  );
-                },
-                separatorBuilder: (BuildContext context, int index) {
-                  if (index % 9 == 0) {
-                    return const Ads();
-                  } else {
-                    return const SizedBox.shrink();
-                  }
-                },
-              ),
+              child: buildListView()
             ),
             // Box Button
             Padding(
               padding: const EdgeInsets.only(top: 2),
               child: Container(
-                height: 55,
+                height: MediaQuery.of(context).size.height/16,
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: Colors.grey[300],
@@ -224,7 +212,7 @@ class _HomeState extends State<Home> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       SizedBox(
-                        height: double.infinity,
+                        height: MediaQuery.of(context).size.height/16,
                         width: 120,
                         child: TextButton.icon(
                           style: ButtonStyle(
@@ -235,10 +223,13 @@ class _HomeState extends State<Home> {
                             color: Colors.black,
                           ),
                           onPressed: () {
-                            _showSnackBar(
-                                context, "بروزرسانی با موفقیت انجام شد.");
+                            currency.clear();
+                            buildListView();
+
+                            _showSnackBar(context, "بروزرسانی با موفقیت انجام شد");
                             setState(() {
-                              systemTime = _getTime();
+                              getResponse(context);
+
                             });
                           },
                           label: const Text(
@@ -261,6 +252,27 @@ class _HomeState extends State<Home> {
         ),
       ),
     );
+  }
+
+  // List View
+  ListView buildListView() {
+    return ListView.separated(
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: currency.length,
+                    itemBuilder: (BuildContext context, int position) {
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: MyItem(currency, position),
+                      );
+                    },
+                    separatorBuilder: (BuildContext context, int index) {
+                      if (index % 9 == 0) {
+                        return const Ads();
+                      } else {
+                        return const SizedBox.shrink();
+                      }
+                    },
+                  );
   }
 
   void _showSnackBar(BuildContext context, String msg) {
@@ -307,7 +319,9 @@ class MyItem extends StatelessWidget {
           Text(currency[position].price!),
           Text(
             currency[position].changes!,
-            style: currency[position].status == "p" ? const TextStyle(color: Colors.green) : const TextStyle(color: Colors.red),
+            style: currency[position].status == "p"
+                ? const TextStyle(color: Colors.green)
+                : const TextStyle(color: Colors.red),
           ),
         ],
       ),
