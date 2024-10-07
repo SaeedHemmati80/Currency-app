@@ -2,8 +2,7 @@ import 'package:currency/models/Currency.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert' as convert;
+import 'package:dio/dio.dart';
 
 import 'package:http/http.dart';
 
@@ -14,6 +13,8 @@ void main() {
 // MyApp
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -41,20 +42,24 @@ class Home extends StatefulWidget {
     super.key,
   });
 
+
   @override
   State<Home> createState() => _HomeState();
 }
+
 
 class _HomeState extends State<Home> {
   List<Currency> currency = [];
   String systemTime = "";
 
-  Future getResponse() async{
+  Future getResponse(BuildContext context) async{
     var url = "https://sasansafari.com/flutter/api.php?access_key=flutter123456";
-    var data = await get(Uri.parse(url));
+    var dio = Dio();
+    var response = await dio.get(url);
       if (currency.isEmpty) {
-        if (data.statusCode == 200) {
-          List jsonList = convert.jsonDecode(data.body);
+        if (response.statusCode == 200) {
+          _showSnackBar(context, "بروزرسانی اطلاعات با موفقیت انجام شد");
+          List jsonList = response.data;
 
           if (jsonList.isNotEmpty) {
             for (int i = 0; i < jsonList.length; i++) {
@@ -73,10 +78,15 @@ class _HomeState extends State<Home> {
   }
 
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getResponse(context);
+  }
+
+  @override
   Widget build(BuildContext context) {
     systemTime = _getTime();
-
-    getResponse();
 
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 243, 243, 243),
